@@ -116,3 +116,109 @@ for index, color in pairs(colors) do
     print(index, color)
 end
 
+print("Day Three")
+--------------------------------------------------------------------
+-- 1. “Class” system with metatables
+--------------------------------------------------------------------
+local Person = {}                              -- class table
+Person.__index = Person                        -- methods lookup
+
+-- constructor
+function Person:new(name, age)
+    local obj = { name = name, age = age }
+    setmetatable(obj, self)
+    return obj
+end
+
+-- instance method
+function Person:greet()
+    return ("Hi, I’m %s and I’m %d years old."):format(self.name, self.age)
+end
+
+-- operator overloading: adding two Person objects returns their combined age
+function Person.__add(p1, p2)
+    return p1.age + p2.age
+end
+
+-- “property” fallback via __index metamethod
+Person.nickname = "Anonymous"
+
+-- testing
+local alice   = Person:new("Alice", 22)
+local bob     = Person:new("Bob",   20)
+print(alice:greet())                 --> Hi, I’m Alice and I’m 22 years old.
+print("Combined age:", alice + bob)  --> 42
+print("Bob’s nickname:", bob.nickname) -- falls back to class field
+
+--------------------------------------------------------------------
+-- 2. Coroutines: simple task scheduler
+--------------------------------------------------------------------
+-- a coroutine that counts to n with a delay (simulated)
+local function counter(name, n)
+    for i = 1, n do
+        print(name, i)
+        coroutine.yield()   -- give control back to scheduler
+    end
+end
+
+-- scheduler
+local co1 = coroutine.create(counter)
+local co2 = coroutine.create(counter)
+coroutine.resume(co1, "A", 3)   -- prime with args
+coroutine.resume(co2, "B", 5)
+
+while coroutine.status(co1) ~= "dead" or coroutine.status(co2) ~= "dead" do
+    if coroutine.status(co1) ~= "dead" then coroutine.resume(co1) end
+    if coroutine.status(co2) ~= "dead" then coroutine.resume(co2) end
+end
+
+--------------------------------------------------------------------
+-- 3. File I/O: write, append, read
+--------------------------------------------------------------------
+local filename = "demo.txt"
+
+-- write (overwrites if exists)
+local fh = assert(io.open(filename, "w"))
+fh:write("Line 1\n")
+fh:close()
+
+-- append
+fh = assert(io.open(filename, "a"))
+fh:write("Line 2\nLine 3\n")
+fh:close()
+
+-- read whole file
+fh = assert(io.open(filename, "r"))
+local contents = fh:read("*all")
+fh:close()
+print("\nFile contents:\n" .. contents)
+
+--------------------------------------------------------------------
+-- 4. Error handling
+--------------------------------------------------------------------
+local function risky_divide(a, b)
+    if b == 0 then error("Division by zero!") end
+    return a / b
+end
+
+-- pcall returns status + result|error
+local ok, result = pcall(risky_divide, 10, 0)
+if not ok then
+    print("Caught error via pcall:", result)
+end
+
+-- xpcall lets you supply a custom traceback
+local function traceback(err)
+    return "Traceback:\n" .. debug.traceback(err, 2)
+end
+
+local ok2, res2 = xpcall(function() return risky_divide(8, 0) end, traceback)
+if not ok2 then
+    print("Caught error via xpcall:\n" .. res2)
+end
+
+--------------------------------------------------------------------
+
+
+local mymath = require("mymath")
+print("\n5! =", mymath.factorial(5))   --> 120
