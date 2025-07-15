@@ -3,6 +3,9 @@ print("Day One!")
 s = io.read()
 print(s)
 
+
+print("Day Two begins below")
+
 --[[ 
   Demonstration of Lua Programming Constructs:
   - Loops
@@ -112,3 +115,4 @@ print("\nIterating over table using pairs:")
 for index, color in pairs(colors) do
     print(index, color)
 end
+
